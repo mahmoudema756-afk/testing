@@ -3,16 +3,9 @@
 import { useEffect, useState } from "react";
 import type { CourseRow } from "./LiveLibrary";
 import { getSupabaseBrowserClient, isSupabaseConfigured } from "@/lib/supabase/client";
+import { resolveMaterialMime, validateMaterialUpload } from "@/lib/upload-validation";
 
 const resourceTypes = ["lecture", "tutorial", "assignment", "summary"] as const;
-const maxFileSize = 10 * 1024 * 1024;
-const allowedMimeTypes = new Set([
-  "application/pdf",
-  "application/msword",
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-  "application/vnd.ms-powerpoint",
-  "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-]);
 
 export function MaterialUploadForm() {
   const [courses, setCourses] = useState<CourseRow[]>([]);
@@ -25,25 +18,27 @@ export function MaterialUploadForm() {
   const [busy, setBusy] = useState(false);
   const configured = isSupabaseConfigured();
 
-  useEffect(() => { const supabase = getSupabaseBrowserClient(); if (!supabase) return; supabase.from("courses").select("*").eq("is_active",true).eq("suggestion_status","approved").order("code").then(({data,error})=>{if(error)setMessage(error.message);else {setCourses(data??[]);setCourseCode(data?.[0]?.code??"");}}); supabase.auth.getUser().then(({ data }) => setUserId(data.user?.id ?? null)); }, []);
+  useEffect(() => { const supabase = getSupabaseBrowserClient(); if (!supabase) return; supabase.from("courses").select("*").eq("is_active",true).eq("suggestion_status","approved").order("code").then(({data,error})=>{if(error)setMessage("Courses could not load. Confirm migration 002 is applied and try again.");else {setCourses(data??[]);setCourseCode(data?.[0]?.code??"");}}); supabase.auth.getUser().then(({ data }) => setUserId(data.user?.id ?? null)); }, []);
 
   async function upload(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const supabase = getSupabaseBrowserClient();
-    if (!supabase || !userId || !file) return;
-    if (file.size > maxFileSize) { setMessage("Choose a file smaller than 10 MB."); return; }
-    if (!allowedMimeTypes.has(file.type)) { setMessage("Only PDF, DOC, DOCX, PPT, and PPTX files are allowed."); return; }
+    if (!supabase || !userId) return;
+    const validationError = validateMaterialUpload(file);
+    if (validationError || !file) { setMessage(validationError ?? "Choose a file first."); return; }
+    const mimeType = resolveMaterialMime(file);
+    if (!mimeType) { setMessage("The file type could not be verified."); return; }
     const course = courses.find(item => item.code === courseCode);
-    if (!course) return;
+    if (!course) { setMessage("Choose an approved course before uploading."); return; }
     setBusy(true); setMessage("");
     const { data: courseRow, error: courseError } = await supabase.from("courses").select("id").eq("code", course.code).single();
-    if (courseError || !courseRow) { setBusy(false); setMessage("This course has not been seeded in Supabase yet."); return; }
+    if (courseError || !courseRow) { setBusy(false); setMessage("The course is unavailable. Refresh the page and try again."); return; }
     const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
     const storagePath = `${userId}/${crypto.randomUUID()}-${safeName}`;
-    const { error: uploadError } = await supabase.storage.from("materials").upload(storagePath, file, { contentType: file.type, upsert: false });
-    if (uploadError) { setBusy(false); setMessage(uploadError.message); return; }
-    const { error: insertError } = await supabase.from("materials").insert({ course_id: courseRow.id, uploader_id: userId, title, resource_type: resourceType, storage_path: storagePath, original_filename: file.name, mime_type: file.type, size_bytes: file.size });
-    if (insertError) { await supabase.storage.from("materials").remove([storagePath]); setBusy(false); setMessage(insertError.message); return; }
+    const { error: uploadError } = await supabase.storage.from("materials").upload(storagePath, file, { contentType: mimeType, upsert: false });
+    if (uploadError) { setBusy(false); setMessage("Upload failed. Check that you are signed in and the materials bucket allows your account folder."); return; }
+    const { error: insertError } = await supabase.from("materials").insert({ course_id: courseRow.id, uploader_id: userId, title, resource_type: resourceType, storage_path: storagePath, original_filename: file.name, mime_type: mimeType, size_bytes: file.size });
+    if (insertError) { const cleanup = await supabase.storage.from("materials").remove([storagePath]); setBusy(false); setMessage(cleanup.error ? "The upload could not be submitted and needs administrator cleanup." : "The upload could not be submitted. The file was removed safely."); return; }
     setBusy(false); setTitle(""); setFile(null); setMessage("Submitted for admin review. It will not be visible until approved.");
   }
 

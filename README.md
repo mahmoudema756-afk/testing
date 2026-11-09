@@ -47,3 +47,11 @@ No database updates have been executed by the implementation.
 Live authentication, role isolation, Storage downloads and mutation persistence
 require staging verification with anonymous, student and admin sessions. Content
 updates appear on the next page visit without a deployment.
+
+## Upload diagnosis
+
+The earlier course-suggestion migration referenced `public.is_admin()` while the
+production schema uses `app_private.is_admin()`. Applying that older migration
+would roll back its transaction before it added the course metadata and material
+insert policy. Migrations 002 and 003 in this branch correct that compatibility
+problem, but must be tested in staging before they can repair a live project.
