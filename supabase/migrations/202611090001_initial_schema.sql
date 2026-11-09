@@ -61,7 +61,7 @@ values ('materials', 'materials', false, 10485760, array['application/pdf','appl
 on conflict (id) do update set public = false, file_size_limit = excluded.file_size_limit, allowed_mime_types = excluded.allowed_mime_types;
 create policy "Users upload only into their own folder" on storage.objects for insert to authenticated with check (bucket_id = 'materials' and (storage.foldername(name))[1] = auth.uid()::text);
 create policy "Users manage their own uploads" on storage.objects for delete to authenticated using (bucket_id = 'materials' and ((storage.foldername(name))[1] = auth.uid()::text or public.is_admin()));
-create policy "Approved files are downloadable" on storage.objects for select using (bucket_id = 'materials' and (public.is_admin() or owner_id = auth.uid() or exists (select 1 from public.materials m where m.storage_path = name and m.status = 'approved')));
+create policy "Approved files are downloadable" on storage.objects for select using (bucket_id = 'materials' and (public.is_admin() or owner_id = auth.uid()::text or exists (select 1 from public.materials m where m.storage_path = name and m.status = 'approved')));
 
 -- Promote a trusted account only after it exists:
 -- update public.profiles set role = 'admin' where id = '<AUTH_USER_UUID>';

@@ -12,7 +12,8 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
-  const next = searchParams.get("next")?.startsWith("/") ? searchParams.get("next")! : "/dashboard";
+  const nextParam = searchParams.get("next");
+  const next = nextParam?.startsWith("/") && !nextParam.startsWith("//") ? nextParam : "/dashboard";
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();

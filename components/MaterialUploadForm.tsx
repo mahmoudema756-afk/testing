@@ -6,6 +6,13 @@ import { getSupabaseBrowserClient, isSupabaseConfigured } from "@/lib/supabase/c
 
 const resourceTypes = ["lecture", "tutorial", "assignment", "summary"] as const;
 const maxFileSize = 10 * 1024 * 1024;
+const allowedMimeTypes = new Set([
+  "application/pdf",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "application/vnd.ms-powerpoint",
+  "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+]);
 
 export function MaterialUploadForm() {
   const [userId, setUserId] = useState<string | null>(null);
@@ -24,6 +31,7 @@ export function MaterialUploadForm() {
     const supabase = getSupabaseBrowserClient();
     if (!supabase || !userId || !file) return;
     if (file.size > maxFileSize) { setMessage("Choose a file smaller than 10 MB."); return; }
+    if (!allowedMimeTypes.has(file.type)) { setMessage("Only PDF, DOC, DOCX, PPT, and PPTX files are allowed."); return; }
     const course = courses.find(item => item.code === courseCode);
     if (!course) return;
     setBusy(true); setMessage("");
