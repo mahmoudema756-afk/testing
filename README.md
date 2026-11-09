@@ -15,7 +15,8 @@ Run `npm run dev`. Checks: `npm run lint`, `npx tsc --noEmit`, `npm run build`.
 metadata and RLS, preserves existing approved courses, prevents cascade deletion
 of their materials, and binds material submissions to owned storage objects.
 It has NOT been applied to production. Back up and test it in a staging project
-before application. Do not rerun the original migration or seed data.
+before application. It expects the production helper `app_private.is_admin()`.
+Do not rerun the original migration or seed data.
 
 The course code remains globally unique, including pending/rejected suggestions.
 Archive courses with materials rather than deleting them. Existing users and
