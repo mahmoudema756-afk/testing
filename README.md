@@ -31,6 +31,18 @@ Build success alone does not establish live authentication or RLS correctness.
 
 ## Current implementation status
 
-The existing UI still uses demo course data. Dynamic catalog, course suggestion
-forms, expanded administration, and the requested full redesign remain pending.
-This branch is an incremental database foundation, not a production release.
+The catalog and course detail pages fetch approved courses and materials from
+Supabase on navigation. Upload course choices are dynamic. Students can suggest
+courses at /suggest; administrators manage courses, suggestions and materials at
+/admin, including edits, archival, review and moving materials. Removing a
+material listing retains its Storage object for recovery. Course deletion is
+restricted when materials exist.
+
+Review and apply migrations 002 then 003 in staging before deploying these
+interfaces. Migration 003 supports broader course codes and adds a normalized
+unique index; check existing codes for case-insensitive duplicates first.
+No database updates have been executed by the implementation.
+
+Live authentication, role isolation, Storage downloads and mutation persistence
+require staging verification with anonymous, student and admin sessions. Content
+updates appear on the next page visit without a deployment.

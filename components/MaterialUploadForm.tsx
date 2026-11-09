@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { courses } from "@/lib/courses";
+import type { CourseRow } from "./LiveLibrary";
 import { getSupabaseBrowserClient, isSupabaseConfigured } from "@/lib/supabase/client";
 
 const resourceTypes = ["lecture", "tutorial", "assignment", "summary"] as const;
@@ -15,16 +15,17 @@ const allowedMimeTypes = new Set([
 ]);
 
 export function MaterialUploadForm() {
+  const [courses, setCourses] = useState<CourseRow[]>([]);
   const [userId, setUserId] = useState<string | null>(null);
   const [title, setTitle] = useState("");
-  const [courseCode, setCourseCode] = useState(courses[0].code);
+  const [courseCode, setCourseCode] = useState("");
   const [resourceType, setResourceType] = useState<(typeof resourceTypes)[number]>("lecture");
   const [file, setFile] = useState<File | null>(null);
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
   const configured = isSupabaseConfigured();
 
-  useEffect(() => { const supabase = getSupabaseBrowserClient(); if (!supabase) return; supabase.auth.getUser().then(({ data }) => setUserId(data.user?.id ?? null)); }, []);
+  useEffect(() => { const supabase = getSupabaseBrowserClient(); if (!supabase) return; supabase.from("courses").select("*").eq("is_active",true).eq("suggestion_status","approved").order("code").then(({data,error})=>{if(error)setMessage(error.message);else {setCourses(data??[]);setCourseCode(data?.[0]?.code??"");}}); supabase.auth.getUser().then(({ data }) => setUserId(data.user?.id ?? null)); }, []);
 
   async function upload(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();

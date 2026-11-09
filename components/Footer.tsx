@@ -1,0 +1,1 @@
+export function Footer(){return <footer id="about" className="site-footer"><div className="shell py-10"><h2>MUST CS Materials Hub</h2><p>An independent student project. Not affiliated with or operated by Misr University for Science and Technology.</p><p className="mt-5 font-bold">Made by Mahmoud Emad</p></div></footer>;}
