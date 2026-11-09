@@ -1,0 +1,3 @@
+import { Header } from "@/components/Header";
+import { MaterialUploadForm } from "@/components/MaterialUploadForm";
+export default function SubmitPage() { return <><Header/><main className="shell py-14 sm:py-20"><div className="mb-8 max-w-2xl"><p className="text-xs font-extrabold uppercase tracking-[.18em] text-[var(--must-green-deep)]">Contribute materials</p><h1 className="mt-3 text-3xl font-black text-[var(--must-navy-deep)]">Share a resource for review</h1><p className="mt-3 text-sm leading-6 text-slate-600">Every submission stays private until an administrator approves it. Upload only material you have permission to share.</p></div><MaterialUploadForm/></main></>; }
