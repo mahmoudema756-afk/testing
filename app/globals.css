@@ -1,6 +1,23 @@
 @import "tailwindcss";
 
-:root { --navy: #071d49; --navy-soft: #0d2d67; --gold: #c89b3c; --gold-pale: #fbf5e7; --ink: #17233a; --muted: #62708a; --line: #dfe5ef; --paper: #f6f8fc; --white: #fff; }
+:root {
+  /* Taken from the supplied MUST seal: deep blue, campus green, and white. */
+  --must-navy: #002d6a;
+  --must-navy-deep: #001d4a;
+  --must-navy-pale: #edf3fb;
+  --must-green: #009b47;
+  --must-green-deep: #007a38;
+  --must-green-pale: #e8f6ed;
+  --must-ink: #10213e;
+  --must-muted: #53657d;
+  --must-line: #dce5f0;
+  --must-paper: #f6f9fc;
+  --white: #fff;
+  --ink: var(--must-ink);
+  --muted: var(--must-muted);
+  --line: var(--must-line);
+  --paper: var(--must-paper);
+}
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
 body { margin: 0; background: var(--paper); color: var(--ink); font-family: Arial, Helvetica, sans-serif; }
@@ -10,7 +27,7 @@ button { cursor: pointer; }
 .shell { width: min(1180px, calc(100% - 40px)); margin: 0 auto; }
 .text-balance { text-wrap: balance; }
 .hero-grid { background-image: linear-gradient(rgba(255,255,255,.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.1) 1px, transparent 1px); background-size: 48px 48px; }
-.surface { box-shadow: 0 14px 40px rgba(7,29,73,.07); }
+.surface { box-shadow: 0 14px 40px rgba(0,45,106,.08); }
 .reveal { animation: rise .6s both; }
 .reveal-delay { animation: rise .6s .12s both; }
 .reveal-delay-2 { animation: rise .6s .24s both; }

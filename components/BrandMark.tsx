@@ -1,1 +1,7 @@
-export function BrandMark() { return <span className="relative grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-[#c89b3c]/40 bg-[#071d49] text-[11px] font-black tracking-tight text-white shadow-sm" aria-label="MUST CS placeholder mark">CS<span className="absolute bottom-1 h-0.5 w-4 bg-[#c89b3c]" /></span>; }
+import Image from "next/image";
+
+export function BrandMark() {
+  return <span className="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-full bg-white p-0.5 shadow-sm ring-1 ring-[var(--must-navy)]/15">
+    <Image src="/must-logo.png.webp" alt="Misr University for Science and Technology logo" width={48} height={48} priority className="h-full w-full object-contain" />
+  </span>;
+}
