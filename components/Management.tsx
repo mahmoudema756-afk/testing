@@ -2,6 +2,8 @@
 import { useEffect, useState } from "react";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import type { CourseRow } from "./LiveLibrary";
+import { SupabaseDiagnostic } from "./SupabaseDiagnostic";
+import { isSupabaseConfigured } from "@/lib/supabase/client";
 type Material={id:string;title:string;course_id:string;status:string;storage_path:string;resource_type:string};
 export function Management(){
  const [courses,setCourses]=useState<CourseRow[]>([]),[materials,setMaterials]=useState<Material[]>([]),[message,setMessage]=useState(""),[query,setQuery]=useState(""),[filter,setFilter]=useState(""),[busy,setBusy]=useState(false),[loading,setLoading]=useState(true);
@@ -9,6 +11,7 @@ export function Management(){
  useEffect(()=>{void Promise.resolve().then(load).catch(e=>setMessage(e.message));},[]);
  async function perform(task:()=>Promise<void>){setBusy(true);setMessage("");try{await task();await load();setMessage("Changes saved.");}catch(e){setMessage(e instanceof Error?e.message:"Operation failed.");}finally{setBusy(false);}}
  async function update(table:string,id:string,values:object){const db=getSupabaseBrowserClient();if(!db)throw new Error("Connection unavailable.");const {error}=await db.from(table).update(values).eq("id",id).select("id").single();if(error)throw error;}
+ if(!isSupabaseConfigured())return <SupabaseDiagnostic action="open the administration dashboard"/>;
  if(loading)return <div className="grid gap-4 sm:grid-cols-3" aria-label="Loading dashboard">{[1,2,3].map(n=><div className="panel skeleton h-28" key={n}/>)}</div>;
  return <><div className="grid gap-4 sm:grid-cols-3">{[[courses.length,"Courses"],[courses.filter(c=>c.suggestion_status==="pending").length,"Course suggestions"],[materials.filter(m=>m.status==="pending").length,"Materials awaiting review"]].map(([n,label])=><div className="panel" key={label}><strong className="text-3xl">{n}</strong><p>{label}</p></div>)}</div><p role="status">{message}</p><div className="panel flex gap-3 flex-wrap"><input aria-label="Search management" placeholder="Search code or title" value={query} onChange={e=>setQuery(e.target.value)}/><select aria-label="Review status" value={filter} onChange={e=>setFilter(e.target.value)}><option value="">All statuses</option><option>pending</option><option>approved</option><option>rejected</option></select></div>
  <details className="panel"><summary>Create a course</summary><form className="form-grid" onSubmit={e=>{e.preventDefault();const form=e.currentTarget;const f=new FormData(form);void perform(async()=>{const db=getSupabaseBrowserClient()!;const {error}=await db.from("courses").insert({code:String(f.get("code")).trim().toUpperCase(),title:f.get("title"),academic_year:f.get("year"),semester:f.get("semester"),description:f.get("description"),level:"",is_active:true,suggestion_status:"approved"});if(error)throw error;form.reset();});}}><label>Code<input required name="code" pattern="[A-Za-z0-9][A-Za-z0-9 -]{1,19}"/></label><label>Title<input required name="title" minLength={2} maxLength={160}/></label><label>Academic year<input required name="year" pattern="[0-9]{4}-[0-9]{4}"/></label><label>Semester<input required name="semester"/></label><label>Description<textarea name="description"/></label><button className="action" disabled={busy}>Create course</button></form></details>

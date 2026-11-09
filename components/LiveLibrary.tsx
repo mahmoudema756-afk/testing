@@ -1,8 +1,9 @@
 "use client";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import { getSupabaseBrowserClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { MotionReveal } from "./MotionReveal";
+import { SupabaseDiagnostic } from "./SupabaseDiagnostic";
 
 export type CourseRow = { id: string; code: string; title: string; academic_year: string | null; semester: string; level: string; description: string; is_active: boolean; suggestion_status: string };
 export function LiveLibrary({ code }: { code?: string }) {
@@ -37,7 +38,8 @@ export function LiveLibrary({ code }: { code?: string }) {
     if(error) { setError("This file could not be downloaded. Please try again."); return; }
     const url = URL.createObjectURL(data); const a = document.createElement("a"); a.href=url; a.download=name; a.click(); setTimeout(()=>URL.revokeObjectURL(url),1000);
   }
-  if(loading) return <p role="status" className="panel">Loading the library…</p>;
+  if(!isSupabaseConfigured()) return <SupabaseDiagnostic action="load the shared course library"/>;
+  if(loading) return <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3" aria-label="Loading course library">{[1,2,3].map(item=><div className="panel skeleton" key={item}/>)}</div>;
   if(error) return <p role="alert" className="panel">{error}</p>;
   const course = courses.find(c=>c.code.toLowerCase()===code?.toLowerCase());
   if(code) return course ? <><Link href="/#courses">← Course library</Link><div className="panel"><p className="eyebrow">{course.code} · {course.academic_year} · {course.semester}</p><h1>{course.title}</h1><p>{course.description}</p><Link className="action" href="/submit">Contribute a material</Link></div><div className="grid gap-5 md:grid-cols-2">{["lecture","tutorial","assignment","summary"].map(kind=><section className="panel" key={kind}><h2 className="capitalize">{kind}s</h2>{materials.filter(m=>m.resource_type===kind).map(m=><button className="resource" key={m.id} onClick={()=>download(m.storage_path,m.original_filename)}>{m.title}<span>Download ↓</span></button>)}{!materials.some(m=>m.resource_type===kind)&&<p>No approved materials yet. Be the first to contribute.</p>}</section>)}</div></> : <div className="panel"><h1>Course unavailable</h1><Link href="/">Return to the library</Link></div>;
