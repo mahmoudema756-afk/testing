@@ -2,11 +2,11 @@
 
 The browser uses only the public project URL and publishable key. Never add a service-role key to source control, Vercel, or the browser.
 
-1. Create a Supabase project. In Authentication, enable Email and configure the production site URL and redirect URLs.
+1. In Authentication, enable Email and configure the production site URL and redirect URLs. Add the local and production auth confirmation URLs ending in /auth/confirm.
 2. In SQL Editor, run supabase/migrations/202611090001_initial_schema.sql and then supabase/seed.sql.
 3. Create an account through /auth. In SQL Editor, promote one trusted account using the final commented update statement in the migration.
 4. In Vercel project Settings then Environment Variables, add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY to Preview and Production.
-5. Redeploy. Visit /auth and then /submit.
+5. Redeploy. Visit /signup to create an account, confirm the email, then use /dashboard and /submit.
 
 ## Approval flow
 
